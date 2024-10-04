@@ -86,53 +86,42 @@ while(TRUE){
 # 그림애니메이션을 이용하여 직선이 아닌 포물선으로 날아가도록 수정해보세요.
 
 # 화살 위치 초기화
-x_start = 0
-y_start = 220
-angle_start = -45  # 시작 각도 (도)
+x = 0
+y = 220
 
 # 포물선 매개변수 설정
-a = 0.005  # 포물선의 곡률
-x_target = 400  # 목표 x 좌표
+x_target = 390  # 목표 x 좌표 (과녁의 노란색 중앙에 맞추기)
+y_target = 90  # 목표 y 좌표 (노란색 중앙에 맞추기)
+max_height = 140  # 포물선의 최대 높이 (적당히 부드럽게)
 
-# 화살의 위치와 각도를 계산하는 함수
-calculate_position <- function(t) {
-  x = x_start + t
-  y = y_start - (a * t^2)
-  angle = atan2(-2 * a * t, 1) * 180 / pi  # 각도를 도(degree)로 변환
-  return(list(x = x, y = y, angle = angle))
-}
-
-# 배경 이미지와 화살 이미지 로드 (이미지 파일 경로를 적절히 수정해야 합니다)
-bg2 = image_read("background.png")
-arrow = image_read("arrow.png")
-
-# 애니메이션 프레임 생성
-for (t in seq(0, x_target, by = 10)) {
-  pos = calculate_position(t)
+# 반복문을 사용하여 화살이 움직이는 애니메이션 설정
+while(TRUE) {
+  # 포물선 궤적 계산 (기존 y_target 유지, 포물선 부드럽게 조정)
+  t = x / x_target  # t는 x의 진행 비율을 나타냄
+  y = 220 - (220 - y_target) * t - max_height * sin(pi * t)  # 포물선 y 계산
+  
+  # 화살의 각도 계산 (포물선의 기울기를 바탕으로 회전 각도 결정)
+  dy_dx = -(220 - y_target) / x_target + (max_height * pi * cos(pi * t)) / x_target
+  angle = atan2(dy_dx, 3) * 180 / pi  # 각도 계산 (라디안 -> 도)
   
   # 화살 이미지 회전
-  rotated_arrow = image_rotate(arrow, pos$angle)
+  rotated_arrow = image_rotate(arrow, -angle)
   
-  # 화살 이미지 위치 설정
-  position = geometry_point(pos$x, pos$y)
+  # 화살이미지 위치(x, y)
+  position = geometry_point(x, y)
   
   # 이미지 합성: bg2(배경+과녁판) + rotated_arrow(회전된 화살)
-  img = image_composite(bg2, rotated_arrow, offset = position)
+  img = image_composite(bg2, rotated_arrow, offset=position)
   
-  # 이미지 출력
   print(img)
   
-  # 애니메이션 속도 조절
-  Sys.sleep(0.05)
+  Sys.sleep(0.1)
   
-  # 목표 지점에 도달하면 반복 종료
-  if (pos$x >= x_target) break
+  # x축의 값이 목표에 도달하면 반복문 빠져나간다.
+  if (x >= x_target)
+    break
+  
+  x = x + 20
 }
-
-# 마지막 프레임 표시 (화살이 과녁에 꽂힌 상태)
-Sys.sleep(1)
-
-
-
 
 
